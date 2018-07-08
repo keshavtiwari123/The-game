@@ -1,0 +1,240 @@
+<html>
+		<head>
+			<meta name="viewport" content="width=device-width, initial-scale=.7,  maximum-scale=.7, minimum-scale=.7">
+		</head>
+	<body>
+		<style type='text/css'>
+			#block{
+				width: 50px;
+				height: 50px;
+				background-color: red;
+				position: absolute;
+				bottom: 0%;
+				transition: transform 1s;
+				z-index: 2;
+				border-radius: 5px;
+			}
+			#canvas{
+				width: 400px;
+				height: 550px;
+				background-color: black;
+				overflow: hidden;
+				position: fixed;
+				left: calc(50% - 200px);
+				border-radius: 5px;
+			}
+			.wall{
+				width: 400px;
+				height: 50px;
+				position: absolute;
+				border-radius: 5px;
+			}
+			#gap{
+				background: black;
+				height: 100%;
+				width: 50px;
+				position: absolute;	
+				border-radius: 5px;
+			}
+			#over
+			{
+				font-size: 50px;
+				position: fixed;
+				top: 50%;
+			}
+			#score
+			{
+				font-size: 50px;
+				color: green;
+				position: absolute;
+				top: 610px;
+			}
+			#left{
+				position: absolute;
+				bottom: 2px;
+				height: 100px;
+				width: 49.5%;
+				left: 0px;
+				background-color: black;
+				color: white;
+				font-size: 70px;
+				text-align: center;
+				opacity: .8;
+			}
+			#right{
+				position: absolute;
+				bottom: 2px;
+				height: 100px;
+				width: 49.5%;
+				left: 50.5%;
+				background-color: black;
+				color: white;
+				font-size: 70px;
+				text-align: center;
+				opacity: .8;
+			}
+			#down{
+				position: absolute;
+				bottom: 110px;
+			}
+		</style>
+		<div id="canvas">
+			<div id="block"></div>
+			<div id="walls"></div>
+		</div>
+		<div id="over" hidden> GAME OVER, PRESS ENTER or <div style="color:blue" id='replay'>CLICK HERE</div></div>
+		<div id="score"></div>
+		<div id="down"></div>
+		<div id="left">< <</div><div id="right">> ></div>
+		<script type="text/javascript" src="jquery.js"></script>
+		<script>
+			var x = $("#block").position();
+			var up = x.top;
+			var left = x.left;
+			var dead = 0;
+			var score = 0;
+			function wall_move(wall)
+			{
+				setInterval(function(){
+					if(!dead)
+					{
+						var wall_height = $(wall).position().top;
+						$(wall).css('top', wall_height+50+'px');
+						if(wall_height == 550)
+						{ 	score++; 
+							$('#score').text('score = '+score);
+						}
+					}
+				}, 1000);
+			}
+			var wall_no = 0;
+			
+			function add_wall()
+			{
+				wall_no = wall_no + 1;
+				$("#walls").prepend($('<div id="wall'+ wall_no +'" class="wall"><div id="gap"'+wall_no+'></div></div>'));
+				var a = Math.random()*400;
+				var b = Math.random()*400;
+				var c = Math.random()*400;
+				$("#wall"+wall_no).css('background-color', 'rgba('+a+', '+b+', '+c+', .8)');
+				wall_move('#wall'+wall_no);
+				var gap_left = Math.random()*400;
+				gap_left = gap_left - gap_left%50;
+				$("#gap").css('left', gap_left+'px');
+				die('#wall'+wall_no, gap_left);
+			}
+			
+			function move_up()
+			{
+				up = up - 50;
+				if(up<0){up=550}
+				$('#block').css('top', up+'px');	
+			}
+			function move_down()
+			{
+				up = up + 50;
+				if(up>550){up=0}
+				$('#block').css('top', up+'px');
+				
+			}
+			function move_left()
+			{
+				left = left - 50;
+				if(left<0){left=350}
+				$('#block').css('left', left+'px');
+				$('#left').css('opacity', '.5');
+				setTimeout(function(){
+					$('#left').css('opacity', '.8');
+				}, 100);
+					add_wall();
+			}
+			function move_right()
+			{
+				left = left + 50;
+				if(left>350){left=0}
+				$('#block').css('left', left+'px');
+				$('#right').css('opacity', '.5');
+				setTimeout(function(){
+					$('#right').css('opacity', '.8');
+				}, 100);
+					add_wall();
+			}
+			function jump()
+			{
+				$("#block").css('transform', 'translateY(-100px)');
+				setTimeout(function(){
+					$("#block").css('transform', 'translateY(0px)');
+				},1000);
+			
+			}
+			function die(wall, gap)
+			{
+				var block_left;
+				var block_top;
+				var wall_height;
+				setInterval(function(){
+					block_left = $('#block').position().left;
+					block_top = $('#block').position().top;
+					wall_height = $(wall).position().top;
+					if(block_top == wall_height)
+				{
+					if(gap != block_left)
+					{
+						dead = 1;
+						$("#canvas").css('opacity', '.05');
+						$('#over').show();
+						score = 0;
+						speed = 400;
+					}
+				}
+				}, 50);
+				
+				
+			}
+			$(document).ready(function(){
+				
+				add_wall();
+				$('#replay').click(function(){
+					$(document).load(document.URL);
+				});
+				$('#left').click(function(){ move_left(); });
+				$('#right').click(function(){ move_right(); });
+				$(window).keydown(function(evt) {
+				if(dead == 0)
+				{
+					if (evt.which == 37) {
+						move_left();
+					}
+					else if(evt.which == 38)
+					{
+						move_up();
+					}
+					else if(evt.which == 39)
+					{
+						move_right();
+					}
+					else if(evt.which == 40)
+					{
+						var a = Math.random()*200;var b = Math.random()*200;var c = Math.random()*200;
+						$('#down').text('Can`t go down, Bitch!').css('color', 'rgb('+a+', '+c+', '+b+')');
+						setTimeout(function(){
+							$('#down').text('');
+						}, 4000);
+					}
+					else if(evt.which == 32)
+					{
+						jump();
+						
+					}
+				}
+				else
+				{
+					if (evt.which == 13) {
+						$(document).load(document.URL);
+					}
+				}
+				});
+			});
+		</script>
+	</body>
+</html>
